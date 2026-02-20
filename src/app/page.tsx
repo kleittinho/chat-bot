@@ -1,69 +1,57 @@
-'use client'                                                                                                                                                         
+ 'use client'                                                                                                                                                         
                                                                                                                                                                         
-   import { useEffect, useState } from 'react'                                                                                                                          
+   import { useState, useEffect } from 'react'                                                                                                                          
    import { createClient } from '@supabase/supabase-js'                                                                                                                 
+   import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react'                                                                                                     
                                                                                                                                                                         
-   // Inicializar Supabase com variáveis de ambiente                                                                                                                    
-   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL                                                                                                             
-   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY                                                                                                        
+   // Supabase                                                                                                                                                          
+   const supabase = createClient(                                                                                                                                       
+     process.env.NEXT_PUBLIC_SUPABASE_URL || '',                                                                                                                        
+     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''                                                                                                                    
+   )                                                                                                                                                                    
                                                                                                                                                                         
    export default function Home() {                                                                                                                                     
-     const [status, setStatus] = useState('Carregando...')                                                                                                              
-     const [visitors, setVisitors] = useState(0)                                                                                                                        
+     const [status, setStatus] = useState('Verificando...')                                                                                                             
+     const [dbStatus, setDbStatus] = useState('Pendente')                                                                                                               
                                                                                                                                                                         
      useEffect(() => {                                                                                                                                                  
-       async function checkSystem() {                                                                                                                                   
-         if (!supabaseUrl || !supabaseKey) {                                                                                                                            
-           setStatus('Erro: Variáveis de ambiente não configuradas no EasyPanel.')                                                                                      
-           return                                                                                                                                                       
-         }                                                                                                                                                              
-                                                                                                                                                                        
-         const supabase = createClient(supabaseUrl, supabaseKey)                                                                                                        
-                                                                                                                                                                        
-         // Teste de conexão simples                                                                                                                                    
-         const { count, error } = await supabase                                                                                                                        
-           .from('visitors')                                                                                                                                            
-           .select('*', { count: 'exact', head: true })                                                                                                                 
-                                                                                                                                                                        
-         if (error) {                                                                                                                                                   
-           // Se a tabela não existir, ainda é um "sucesso" de conexão, mas erro de SQL                                                                                 
-           console.error(error)                                                                                                                                         
-           setStatus('Conectado ao Supabase (Mas verifique as tabelas).')                                                                                               
-         } else {                                                                                                                                                       
-           setVisitors(count || 0)                                                                                                                                      
-           setStatus('Sistema Operacional e Conectado!')                                                                                                                
+       async function check() {                                                                                                                                         
+         try {                                                                                                                                                          
+           const { count, error } = await supabase.from('visitors').select ('*', { count: 'exact', head: true })                                                        
+           if (error) throw error                                                                                                                                       
+           setDbStatus(`Conectado! Visitantes: ${count}`)                                                                                                               
+           setStatus('Online')                                                                                                                                          
+         } catch (e) {                                                                                                                                                  
+           setDbStatus('Erro na conexão Supabase')                                                                                                                      
+           setStatus('Online (Sem Banco)')                                                                                                                              
+           console.error(e)                                                                                                                                             
          }                                                                                                                                                              
        }                                                                                                                                                                
-                                                                                                                                                                        
-       checkSystem()                                                                                                                                                    
+       check()                                                                                                                                                          
      }, [])                                                                                                                                                             
                                                                                                                                                                         
      return (                                                                                                                                                           
-       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-900 text-white p-4">                                                             
-         <div className="max-w-md w-full bg-slate-800 rounded-2xl p-8 border border-slate-700 shadow-xl text-center">                                                   
-           <h1 className="text-3xl font-bold text-emerald-500 mb-2">Equality Chat</h1>                                                                                  
-           <p className="text-slate-400 mb-6">Sistema White-Label v1.0</p>                                                                                              
+       <div className="flex min-h-screen flex-col items-center justify-center bg-slate-950 text-white p-4">                                                             
+         <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-8 shadow-2xl text-center">                                                  
+           <h1 className="mb-2 text-3xl font-bold text-emerald-500">Equality Chat</h1>                                                                                  
+           <p className="mb-6 text-slate-400">Sistema V1.0 - Modo Seguro</p>                                                                                            
                                                                                                                                                                         
-           <div className="bg-slate-900 rounded-xl p-4 mb-6">                                                                                                           
-             <p className="text-xs text-slate-500 uppercase tracking-widest mb-1">Status do Sistema</p>                                                                 
-             <p className="text-lg font-bold text-blue-400">{status}</p>                                                                                                
+           <div className="mb-4 rounded-xl bg-slate-950 p-4 border border-slate-800">                                                                                   
+               <div className="flex items-center gap-3 mb-2">                                                                                                           
+                   <CheckCircle className="text-emerald-500" />                                                                                                         
+                   <span className="font-bold">Next.js Server</span>                                                                                                    
+               </div>                                                                                                                                                   
+               <p className="text-xs text-slate-500 text-left pl-9">Rodando na porta 3000</p>                                                                           
            </div>                                                                                                                                                       
                                                                                                                                                                         
-           <div className="grid grid-cols-2 gap-4">                                                                                                                     
-             <div className="bg-slate-700/50 p-4 rounded-xl">                                                                                                           
-                <p className="text-2xl font-bold text-white">{visitors}</p>                                                                                             
-                <p className="text-xs text-slate-400">Visitantes</p>                                                                                                    
-             </div>                                                                                                                                                     
-             <div className="bg-slate-700/50 p-4 rounded-xl">                                                                                                           
-                <p className="text-2xl font-bold text-green-400">ON</p>                                                                                                 
-                <p className="text-xs text-slate-400">Servidor</p>                                                                                                      
-             </div>                                                                                                                                                     
-           </div>                                                                                                                                                       
-                                                                                                                                                                        
-           <div className="mt-8 pt-6 border-t border-slate-700">                                                                                                        
-              <a href="/admin" className="text-sm text-emerald-500 hover:text-emerald-400 font-semibold">Acessar Painel Admin &rarr;</a>                                
+           <div className={`rounded-xl p-4 border ${dbStatus.includes('Conectado') ? 'bg-emerald-950/30 border-emerald-900' : 'bg-red-950/30 border-red-900'}`}>        
+               <div className="flex items-center gap-3 mb-2">                                                                                                           
+                   {dbStatus.includes('Conectado') ? <CheckCircle className="text-emerald-500"/> : <AlertCircle className="text-red-500"/>}                             
+                   <span className="font-bold">Supabase</span>                                                                                                          
+               </div>                                                                                                                                                   
+               <p className="text-xs text-slate-400 text-left pl-9">{dbStatus}</p>                                                                                      
            </div>                                                                                                                                                       
          </div>                                                                                                                                                         
        </div>                                                                                                                                                           
      )                                                                                                                                                                  
-   }                                     
+   }            

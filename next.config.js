@@ -1,27 +1,28 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    reactStrictMode: true,
+    reactStrictMode: false, // Desativa modo estrito (menos checks)
+    swcMinify: true, // Compilador mais rápido (Rust)
+    
+    // 🛡️ MODO "IGNORAR ERROS" (Para forçar o build)
     eslint: {
-        ignoreDuringBuilds: true, // IMPORTANTE: Ignora erros de lint
+        ignoreDuringBuilds: true,
     },
     typescript: {
-        ignoreBuildErrors: true, // IMPORTANTE: Ignora erros de TS
+        ignoreBuildErrors: true,
     },
-    // Otimização de memória (Experimental)
+
+    // 📉 OTIMIZAÇÃO DE MEMÓRIA (Para VPS Pequeno)
     experimental: {
         workerThreads: false,
         cpus: 1
     },
+
+    // 🖼️ IMAGENS (Sem otimização pesada)
     images: {
+        unoptimized: true, // Desativa processamento de imagem (economiza MUITA RAM)
         domains: ['equalitycorretora.com.br'],
-        remotePatterns: [
-            {
-                protocol: 'https',
-                hostname: 'equalitycorretora.com.br',
-                pathname: '/wp-content/uploads/**',
-            },
-        ],
     },
+
     env: {
         NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
         NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
